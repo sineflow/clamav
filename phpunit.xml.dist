@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        processIsolation="false"
+        stopOnFailure="false"
+        >
+
+  <testsuites>
+    <testsuite name="Functional">
+      <directory>./tests/Functional/</directory>
+    </testsuite>
+    <testsuite name="All">
+      <directory>./tests/</directory>
+    </testsuite>
+  </testsuites>
+
+  <coverage>
+    <include>
+      <directory>./</directory>
+    </include>
+    <exclude>
+      <directory>./tests</directory>
+      <directory>./vendor</directory>
+    </exclude>
+    <report>
+      <text outputFile="php://stdout" showOnlySummary="true"/>
+    </report>
+  </coverage>
+
+  <php>
+    <server name="SHELL_VERBOSITY" value="-1"/>
+    <!--        <env name="SYMFONY_PHPUNIT_VERSION" value="7.5" />-->
+    <!--        <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak" />-->
+  </php>
+
+</phpunit>

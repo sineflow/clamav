@@ -1,0 +1,26 @@
+{
+    "name": "sineflow/clamav",
+    "description": "ClamAV Client for Symfony",
+    "keywords": ["clamav", "bundle", "symfony"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Plamen Mishev",
+            "email": "pmishev@sineflow.com",
+            "homepage": "http://sineflow.com/"
+        }
+    ],
+    "require": {
+        "php": "^7.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {"Sineflow\\ClamAV\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": {"Sineflow\\ClamAV\\Tests\\": "tests/"}
+    }
+}

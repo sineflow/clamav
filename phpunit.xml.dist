@@ -28,6 +28,7 @@
     <exclude>
       <directory>./tests</directory>
       <directory>./vendor</directory>
+      <directory>./var</directory>
     </exclude>
     <report>
       <text outputFile="php://stdout" showOnlySummary="true"/>
@@ -36,8 +37,6 @@
 
   <php>
     <server name="SHELL_VERBOSITY" value="-1"/>
-    <!--        <env name="SYMFONY_PHPUNIT_VERSION" value="7.5" />-->
-    <!--        <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak" />-->
   </php>
 
 </phpunit>

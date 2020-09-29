@@ -3,7 +3,6 @@
 namespace Sineflow\ClamAV;
 
 use Sineflow\ClamAV\DTO\ScannedFile;
-use Sineflow\ClamAV\DTO\ScanResult;
 use Sineflow\ClamAV\ScanStrategy\ScanStrategyInterface;
 
 class Scanner

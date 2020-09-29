@@ -1,8 +1,8 @@
 {
     "name": "sineflow/clamav",
-    "description": "ClamAV Client for Symfony",
+    "description": "ClamAV PHP Client for Symfony",
     "keywords": ["clamav", "bundle", "symfony"],
-    "type": "library",
+    "type": "symfony-bundle",
     "license": "MIT",
     "authors": [
         {
@@ -12,10 +12,14 @@
         }
     ],
     "require": {
-        "php": "^7.3"
+        "php": "^7.3",
+        "symfony/http-kernel": "~4.0|~5.0",
+        "symfony/config": "~4.0|~5.0",
+        "symfony/dependency-injection": "~4.0|~5.0",
+        "symfony/yaml": "~4.0|~5.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.0"
+        "phpunit/phpunit": "^9.0",
     },
     "autoload": {
         "psr-4": {"Sineflow\\ClamAV\\": "src/"}

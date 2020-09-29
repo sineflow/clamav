@@ -1,6 +1,6 @@
 <?php
 
-namespace Sineflow\ClamAV\Bundle\DependencyInjection;
+namespace Sineflow\ClamAV\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;

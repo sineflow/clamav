@@ -3,7 +3,7 @@
 namespace Sineflow\ClamAV\ScanStrategy\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Sineflow\ClamAV\Bundle\SineflowClamAVBundle;
+use Sineflow\ClamAV\SineflowClamAVBundle;
 use Sineflow\ClamAV\Scanner;
 use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdUnix;
 use Symfony\Component\Config\Loader\LoaderInterface;

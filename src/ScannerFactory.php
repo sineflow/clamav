@@ -1,8 +1,7 @@
 <?php
 
-namespace Sineflow\ClamAV\Bundle;
+namespace Sineflow\ClamAV;
 
-use Sineflow\ClamAV\Scanner;
 use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdNetwork;
 use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdUnix;
 

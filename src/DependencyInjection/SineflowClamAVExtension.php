@@ -1,6 +1,6 @@
 <?php
 
-namespace Sineflow\ClamAV\Bundle\DependencyInjection;
+namespace Sineflow\ClamAV\DependencyInjection;
 
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Sineflow\ClamAV\Bundle;
+namespace Sineflow\ClamAV;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

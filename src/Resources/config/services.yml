@@ -1,7 +1,7 @@
 services:
     sineflow.clamav.scanner:
         class: Sineflow\ClamAV\Scanner
-        factory: ['Sineflow\ClamAV\Bundle\ScannerFactory', createScanner]
+        factory: ['Sineflow\ClamAV\ScannerFactory', createScanner]
         arguments:
             - '%sineflow.clamav%'
         public: true

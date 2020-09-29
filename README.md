@@ -12,6 +12,16 @@ $scanner = new Scanner(new ScanStrategyClamdNetwork($host, $port));
 ```
 
 # Usage as a Symfony bundle
+## Enable the bundle
+```php
+// config/bundles.php
+
+return [
+    // ...
+    Sineflow\ClamAV\Bundle\SineflowClamAVBundle::class => ['all' => true],
+];
+```
+
 ## Configuration:
 ```
 sineflow_clamav:

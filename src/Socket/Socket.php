@@ -48,7 +48,7 @@ class Socket
         $this->connect();
 
         if (false === socket_send($this->socket, $dataIn, strlen($dataIn), $flagsSend)) {
-            throw new SocketException('Writing to socket failed');
+            throw new SocketException('Writing to socket failed', socket_last_error());
         }
         $dataOut = '';
         while ($bytes = socket_recv($this->socket, $chunk, self::MAX_READ_BYTES, $flagsReceive)) {
@@ -67,11 +67,12 @@ class Socket
      */
     private function connect()
     {
-        if (!is_resource($this->socket)) {
+        if (!is_resource($this->socket) || get_resource_type($this->socket) !== 'Socket') {
             $this->socket = @ socket_create($this->socketType, SOCK_STREAM, 0);
             if ($this->socket === false) {
                 throw new SocketException('Creating socket failed', socket_last_error());
             }
+
             $hasError = @ socket_connect($this->socket, ...$this->connectionArguments);
             if ($hasError === false) {
                 throw new SocketException('Connecting to socket failed', socket_last_error());

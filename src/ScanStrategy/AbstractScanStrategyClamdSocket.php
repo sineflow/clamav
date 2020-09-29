@@ -12,6 +12,11 @@ abstract class AbstractScanStrategyClamdSocket
      */
     protected $socket;
 
+    /**
+     * @param string $filePath
+     *
+     * @return ScannedFile
+     */
     public function scan(string $filePath): ScannedFile
     {
         if (!is_file($filePath)) {
@@ -23,14 +28,19 @@ abstract class AbstractScanStrategyClamdSocket
         return new ScannedFile($response);
     }
 
-    public function version()
+    /**
+     * @return string
+     */
+    public function version(): string
     {
-        // TODO: Implement version() method.
+        return trim($this->socket->sendCommand('VERSION'));
     }
 
-    public function ping()
+    /**
+     * @return bool
+     */
+    public function ping(): bool
     {
-        // TODO: Implement ping() method.
+        return trim($this->socket->sendCommand('PING')) === 'PONG';
     }
-
 }

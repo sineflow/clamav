@@ -9,6 +9,31 @@ use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdUnix;
 
 class ScannerTest extends TestCase
 {
+    public function testPingWithClamdUnix()
+    {
+        $scanner = new Scanner(new ScanStrategyClamdUnix());
+        $this->assertTrue($scanner->ping());
+    }
+
+    public function testPingWithClamdNetwork()
+    {
+        $scanner = new Scanner(new ScanStrategyClamdNetwork());
+        $this->assertTrue($scanner->ping());
+    }
+
+    public function testVersionWithClamdUnix()
+    {
+        $scanner = new Scanner(new ScanStrategyClamdUnix());
+        $this->assertIsString($scanner->version());
+    }
+
+    public function testVersionWithClamdNetwork()
+    {
+        $scanner = new Scanner(new ScanStrategyClamdNetwork());
+        $this->assertIsString($scanner->version());
+    }
+
+
     /**
      * @dataProvider validFilesToCheckProvider
      */

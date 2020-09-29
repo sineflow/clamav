@@ -29,4 +29,20 @@ class Scanner
     {
         return $this->scanStrategy->scan($filePath);
     }
+
+    /**
+     * @return bool
+     */
+    public function ping(): bool
+    {
+        return $this->scanStrategy->ping();
+    }
+
+    /**
+     * @return string
+     */
+    public function version(): string
+    {
+        return $this->scanStrategy->version();
+    }
 }

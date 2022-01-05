@@ -12,7 +12,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder('sineflow_clamav');
+        $treeBuilder = new TreeBuilder('sineflow_clam_av');
         $rootNode = $treeBuilder->getRootNode();
 
         $rootNode

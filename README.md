@@ -24,13 +24,13 @@ return [
 
 ## Configuration:
 ```
-sineflow_clamav:
+sineflow_clam_av:
     strategy: clamd_unix
     socket: "/var/run/clamav/clamd.ctl"
 ```
 or
 ```
-sineflow_clamav:
+sineflow_clam_av:
     strategy: clamd_network
     host: 127.0.0.1
     port: 3310

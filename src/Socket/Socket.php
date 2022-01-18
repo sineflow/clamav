@@ -48,15 +48,19 @@ class Socket
         $this->connect();
 
         if (false === socket_send($this->socket, $dataIn, strlen($dataIn), $flagsSend)) {
-            throw new SocketException('Writing to socket failed', socket_last_error());
+            throw new SocketException('Writing to socket failed', socket_last_error($this->socket));
         }
         $dataOut = '';
-        while ($bytes = socket_recv($this->socket, $chunk, self::MAX_READ_BYTES, $flagsReceive)) {
+
+        do {
+            $bytes = socket_recv($this->socket, $chunk, self::MAX_READ_BYTES, $flagsReceive);
             if (false === $bytes) {
-                throw new SocketException('Reading from socket failed', socket_last_error());
+                $socketError = socket_last_error($this->socket);
+                socket_close($this->socket);
+                throw new SocketException('Reading from socket failed', $socketError);
             }
             $dataOut .= $chunk;
-        }
+        } while ($bytes);
         socket_close($this->socket);
 
         return $dataOut;

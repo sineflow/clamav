@@ -1,0 +1,1 @@
+Permissions for this file will be set to 000 in the beginning of the test, to make sure it's inaccessible

@@ -10,10 +10,10 @@ class SocketException extends \RuntimeException
     protected $errorCode;
 
     /**
-     * @param string $message
-     * @param int $socketErrorCode
+     * @param string   $message
+     * @param int|null $socketErrorCode
      */
-    public function __construct($message, int $socketErrorCode = null)
+    public function __construct(string $message, int $socketErrorCode = null)
     {
         $this->errorCode = $socketErrorCode;
         if ($socketErrorCode) {
@@ -27,7 +27,7 @@ class SocketException extends \RuntimeException
      * Get socket error (returned from 'socket_last_error')
      * @return int
      */
-    public function getErrorCode()
+    public function getErrorCode(): ?int
     {
         return $this->errorCode;
     }

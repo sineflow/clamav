@@ -3,12 +3,26 @@
 namespace Sineflow\ClamAV\ScanStrategy\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Sineflow\ClamAV\Exception\FileScanException;
 use Sineflow\ClamAV\Scanner;
 use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdNetwork;
 use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdUnix;
 
 class ScannerTest extends TestCase
 {
+    private static $originalFilePermissionsOfInaccessibleFile;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$originalFilePermissionsOfInaccessibleFile = fileperms(__DIR__.'/../Files/inaccessible.txt');
+        chmod(__DIR__.'/../Files/inaccessible.txt', 0000);
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        chmod(__DIR__.'/../Files/inaccessible.txt', self::$originalFilePermissionsOfInaccessibleFile);
+    }
+
     public function testPingWithClamdUnix()
     {
         $scanner = new Scanner(new ScanStrategyClamdUnix());
@@ -50,13 +64,15 @@ class ScannerTest extends TestCase
     /**
      * @dataProvider invalidFilesToCheckProvider
      */
-    public function testScanInvalidFilesWithClamdUnix(string $filePath)
+    public function testScanInvalidFilesWithClamdUnix(string $filePath, string $expectedErrorMessage)
     {
         $scanner = new Scanner(new ScanStrategyClamdUnix());
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(FileScanException::class);
+        $this->expectExceptionMessage($expectedErrorMessage);
         $scanner->scan($filePath);
     }
+
     /**
      * @dataProvider validFilesToCheckProvider
      */
@@ -73,11 +89,12 @@ class ScannerTest extends TestCase
     /**
      * @dataProvider invalidFilesToCheckProvider
      */
-    public function testScanInvalidFilesWithClamdNetwork(string $filePath)
+    public function testScanInvalidFilesWithClamdNetwork(string $filePath, string $expectedErrorMessage)
     {
         $scanner = new Scanner(new ScanStrategyClamdNetwork());
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(FileScanException::class);
+        $this->expectExceptionMessage($expectedErrorMessage);
         $scanner->scan($filePath);
     }
 
@@ -94,8 +111,9 @@ class ScannerTest extends TestCase
     public function invalidFilesToCheckProvider()
     {
         return [
-            [__DIR__.'/../Files/'],
-            ['file_does_not_exist'],
+            [__DIR__.'/../Files/', 'Error scanning "'.__DIR__.'/../Files/'.'": Not a file.'],
+            ['file_does_not_exist', 'Error scanning "file_does_not_exist": Not a file.'],
+            [__DIR__.'/../Files/inaccessible.txt', 'Error scanning "'.__DIR__.'/../Files/inaccessible.txt'.'": Access denied.'],
         ];
     }
 }

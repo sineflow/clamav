@@ -2,6 +2,8 @@
 
 namespace Sineflow\ClamAV\DTO;
 
+use Sineflow\ClamAV\Exception\FileScanException;
+
 class ScannedFile
 {
     /**
@@ -29,9 +31,17 @@ class ScannedFile
      */
     public function __construct(string $rawResponse)
     {
-        $this->rawResponse = $rawResponse;
+        $isParsed = preg_match('/(.*):(.*)(FOUND|OK|ERROR)/i', $rawResponse, $matches);
 
-        preg_match('/(.*):(.*)(FOUND|OK)/i', $rawResponse, $matches);
+        if (!$isParsed) {
+            throw new \RuntimeException(sprintf('Failed to parse clamav response: %s', $rawResponse));
+        }
+
+        if ($matches[3] === 'ERROR') {
+            throw new FileScanException($matches[1], trim($matches[2]));
+        }
+
+        $this->rawResponse = $rawResponse;
         $this->fileName = $matches[1];
         $this->virusName = trim($matches[2]);
         $this->isClean = ($matches[3] === 'OK');

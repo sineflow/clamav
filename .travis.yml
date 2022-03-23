@@ -8,20 +8,15 @@ env:
     - CLAMAV_SOCKET="/var/run/clamav/clamd.ctl"
     - CLAMAV_HOST="127.0.0.1"
     - CLAMAV_PORT="3310"
-#    - CLAMAV_SOCKET="../../../var/run/clamd/clamd.sock"
-
   jobs:
-    include:
-      - php: 8.0
-        env: SYMFONY_VERSION="~6.0"
-      - php: 8.0
-        env: SYMFONY_VERSION="~5.0"
-      - php: 8.0
-        env: SYMFONY_VERSION="~4.0"
-      - php: 7.3
-        env: SYMFONY_VERSION="~5.0"
-      - php: 7.3
-        env: SYMFONY_VERSION="~4.0"
+    - SYMFONY_VERSION="~6.0"
+    - SYMFONY_VERSION="~5.0"
+    - SYMFONY_VERSION="~4.0"
+
+jobs:
+  exclude:
+    - env: SYMFONY_VERSION="~6.0"
+      php: '7.3'
 
 before_install:
   - sudo apt-get update -qq

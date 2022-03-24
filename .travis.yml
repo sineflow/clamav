@@ -1,6 +1,6 @@
 language: php
 php:
-  - '7.3'
+#  - '7.3'
   - '8.0'
 
 env:
@@ -10,8 +10,8 @@ env:
     - CLAMAV_PORT="3310"
   jobs:
     - SYMFONY_VERSION="~6.0"
-    - SYMFONY_VERSION="~5.0"
-    - SYMFONY_VERSION="~4.0"
+#    - SYMFONY_VERSION="~5.0"
+#    - SYMFONY_VERSION="~4.0"
 
 jobs:
   exclude:
@@ -28,6 +28,8 @@ install:
 
 before_script:
   - sudo freshclam
+  - echo 'TCPAddr 127.0.0.1' | sudo tee -a /etc/clamav/clamd.conf
+  - echo 'TCPSocket 3310' | sudo tee -a /etc/clamav/clamd.conf
   - sudo /etc/init.d/clamav-daemon start
   - wget -q --waitretry=1 --retry-connrefused -T 120 -O - http://${CLAMAV_HOST}:${CLAMAV_PORT}
   - export XDEBUG_MODE=coverage
@@ -40,4 +42,6 @@ after_script:
   - travis_retry php vendor/bin/php-coveralls -v
 
 cache:
-  - apt
+  directories:
+    - "/var/lib/clamav"
+  apt: true

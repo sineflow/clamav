@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class SineflowClamavTestingKernel extends Kernel
 {
-    public function registerBundles()
+    public function registerBundles(): iterable
     {
         return [
             new SineflowClamAVBundle(),

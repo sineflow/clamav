@@ -1,0 +1,48 @@
+language: php
+php:
+  - '7.3'
+  - '8.1'
+
+env:
+  global:
+    - CLAMAV_SOCKET="/var/run/clamav/clamd.ctl"
+    - CLAMAV_HOST="127.0.0.1"
+    - CLAMAV_PORT="3310"
+  jobs:
+    - SYMFONY_VERSION="~6.0"
+    - SYMFONY_VERSION="~5.0"
+    - SYMFONY_VERSION="~4.0"
+
+jobs:
+  exclude:
+    - env: SYMFONY_VERSION="~6.0"
+      php: '7.3'
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libclamav-dev clamav clamav-daemon clamav-freshclam
+
+install:
+  - composer require --no-update symfony/framework-bundle:${SYMFONY_VERSION}
+  - composer install --dev --no-interaction
+
+before_script:
+  - sudo freshclam
+  - echo 'TCPAddr 127.0.0.1' | sudo tee -a /etc/clamav/clamd.conf
+  - echo 'TCPSocket 3310' | sudo tee -a /etc/clamav/clamd.conf
+  - sudo adduser clamav travis
+  - sudo /etc/init.d/clamav-daemon start
+  - wget -q --waitretry=1 --retry-connrefused -T 120 -O - http://${CLAMAV_HOST}:${CLAMAV_PORT}
+  - export XDEBUG_MODE=coverage
+
+script:
+  - vendor/bin/phpunit --coverage-clover=tests/build/clover.xml 2>/dev/null
+  - vendor/bin/phpcs -np --standard=PSR2 --ignore=vendor/,tests/,var/ ./
+
+after_script:
+  - travis_retry php vendor/bin/php-coveralls -v
+
+cache:
+  directories:
+    - "/var/lib/clamav"
+  apt: true

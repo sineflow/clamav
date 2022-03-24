@@ -1,5 +1,7 @@
 This library is a PHP client for working with a ClamAV daemon. It also provides optional Symfony integration.
 
+[![Build Status](https://app.travis-ci.com/sineflow/clamav.svg?branch=master)](https://app.travis-ci.com/github/sineflow/clamav)
+
 # Installation
 ```
 $ composer require sineflow/clamav

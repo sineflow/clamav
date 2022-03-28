@@ -4,6 +4,7 @@ namespace Sineflow\ClamAV\ScanStrategy;
 
 use Sineflow\ClamAV\DTO\ScannedFile;
 use Sineflow\ClamAV\Exception\FileScanException;
+use Sineflow\ClamAV\Exception\SocketException;
 use Sineflow\ClamAV\Socket\Socket;
 
 abstract class AbstractScanStrategyClamdSocket
@@ -17,6 +18,9 @@ abstract class AbstractScanStrategyClamdSocket
      * @param string $filePath
      *
      * @return ScannedFile
+     *
+     * @throws FileScanException
+     * @throws SocketException
      */
     public function scan(string $filePath): ScannedFile
     {

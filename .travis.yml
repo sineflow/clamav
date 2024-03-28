@@ -2,6 +2,7 @@ language: php
 php:
   - '7.3'
   - '8.1'
+  - '8.2'
 
 env:
   global:
@@ -9,6 +10,7 @@ env:
     - CLAMAV_HOST="127.0.0.1"
     - CLAMAV_PORT="3310"
   jobs:
+    - SYMFONY_VERSION="~7.0"
     - SYMFONY_VERSION="~6.0"
     - SYMFONY_VERSION="~5.0"
     - SYMFONY_VERSION="~4.0"
@@ -17,6 +19,10 @@ jobs:
   exclude:
     - env: SYMFONY_VERSION="~6.0"
       php: '7.3'
+    - env: SYMFONY_VERSION="~7.0"
+      php: '7.3'
+    - env: SYMFONY_VERSION="~7.0"
+      php: '8.1'
 
 before_install:
   - sudo apt-get update -qq

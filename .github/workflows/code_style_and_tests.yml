@@ -13,7 +13,7 @@ env:
 
 jobs:
     static_code_analysis:
-        runs-on: 'ubuntu-22.04'
+        runs-on: 'ubuntu-24.04'
         name: 'Static code analysis'
         steps:
             - name: 'Setup PHP'
@@ -38,7 +38,7 @@ jobs:
 
     phpunit:
         needs: [ static_code_analysis ]
-        runs-on: 'ubuntu-22.04'
+        runs-on: 'ubuntu-24.04'
         name: 'PHP ${{ matrix.php }}, Symfony ${{ matrix.symfony }}'
         timeout-minutes: 30
         continue-on-error: true
@@ -100,7 +100,21 @@ jobs:
                   vendor/bin/phpunit --coverage-clover=tests/build/clover.xml 2>/dev/null
 
             - name: 'Upload coverage results to Coveralls'
-              env:
-                  COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-              run: |
-                  vendor/bin/php-coveralls --coverage_clover=tests/build/clover.xml --json_path=tests/build/coveralls.json -v
+              uses: coverallsapp/github-action@v2
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  file: tests/build/clover.xml
+                  format: clover
+                  parallel: true
+                  flag-name: php-${{ matrix.php }}-symf-${{ matrix.symfony }}
+
+    finalize:
+        needs: [phpunit]
+        runs-on: ubuntu-24.04
+        if: ${{ always() }}
+        steps:
+            - name: Finalize Coveralls Parallel Build
+              uses: coverallsapp/github-action@v2
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  parallel-finished: true

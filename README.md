@@ -1,6 +1,6 @@
 This library is a PHP client for working with a ClamAV daemon. It also provides optional Symfony integration.
 
-![Workflow status](https://github.com/sineflow/clamav/actions/workflows/code_style_and_tests.yml/badge.svg)
+[![Workflow status](https://github.com/sineflow/clamav/actions/workflows/code_style_and_tests.yml/badge.svg)](https://github.com/sineflow/clamav/actions/workflows/code_style_and_tests.yml)
 
 # Requirements:
 

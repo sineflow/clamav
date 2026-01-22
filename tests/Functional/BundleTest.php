@@ -17,7 +17,7 @@ class SineflowClamavTestingKernel extends Kernel
             new SineflowClamAVBundle(),
         ];
     }
-    public function registerContainerConfiguration(LoaderInterface $loader)
+    public function registerContainerConfiguration(LoaderInterface $loader): void
     {
     }
 }

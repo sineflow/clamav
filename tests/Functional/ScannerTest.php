@@ -109,7 +109,7 @@ class ScannerTest extends TestCase
     {
         return [
             [realpath(__DIR__.'/../Files/clean.txt'), false, ''],
-            [realpath(__DIR__.'/../Files/eicar.txt'), true, 'Win.Test.EICAR_HDB-1'],
+            [realpath(__DIR__.'/../Files/eicar.txt'), true, 'Eicar-Test-Signature'],
             [realpath(__DIR__.'/../Files/eicar-dropper.pdf'), true, 'Pdf.Dropper.Agent-6299400-0'],
             [realpath(__DIR__.'/../Files/infected-archive.zip'), true, 'Eicar-Test-Signature'],
         ];

@@ -6,74 +6,53 @@ use Sineflow\ClamAV\Exception\FileScanException;
 
 class ScannedFile
 {
-    /**
-     * @var string
-     */
-    private $rawResponse;
+    private function __construct(
+        private readonly string $rawResponse,
+        private readonly string $fileName,
+        private readonly bool $isClean,
+        private readonly string $virusName,
+    ) {
+    }
 
-    /**
-     * @var string
-     */
-    private $fileName;
-
-    /**
-     * @var bool
-     */
-    private $isClean;
-
-    /**
-     * @var string
-     */
-    private $virusName;
-
-    /**
-     * @param string $rawResponse
-     */
-    public function __construct(string $rawResponse)
+    public static function fromRawResponse(string $filePath, string $rawResponse): self
     {
-        $isParsed = preg_match('/(.*):(.*)(FOUND|OK|ERROR)/i', $rawResponse, $matches);
+        $isParsed = preg_match('/^(.+): (.*?)\s*(FOUND|OK|ERROR)\s*$/', $rawResponse, $matches);
 
         if (!$isParsed) {
-            throw new \RuntimeException(sprintf('Failed to parse clamav response: %s', $rawResponse));
+            throw new FileScanException($filePath, sprintf('Failed to parse clamav response: %s', $rawResponse));
+        }
+
+        if ($matches[1] !== $filePath) {
+            throw new FileScanException($filePath, sprintf('Parsed file path "%s" does not match the provided file path.', $matches[1]));
         }
 
         if ($matches[3] === 'ERROR') {
-            throw new FileScanException($matches[1], trim($matches[2]));
+            throw new FileScanException($filePath, trim($matches[2]));
         }
 
-        $this->rawResponse = $rawResponse;
-        $this->fileName = $matches[1];
-        $this->virusName = trim($matches[2]);
-        $this->isClean = ($matches[3] === 'OK');
+        return new self(
+            rawResponse: $rawResponse,
+            fileName: $filePath,
+            isClean: ($matches[3] === 'OK'),
+            virusName: trim($matches[2]),
+        );
     }
 
-    /**
-     * @return string
-     */
     public function getRawResponse(): string
     {
         return $this->rawResponse;
     }
 
-    /**
-     * @return string
-     */
     public function getFileName(): string
     {
         return $this->fileName;
     }
 
-    /**
-     * @return bool
-     */
     public function isClean(): bool
     {
         return $this->isClean;
     }
 
-    /**
-     * @return string
-     */
     public function getVirusName(): string
     {
         return $this->virusName;

@@ -11,23 +11,25 @@ use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdUnix;
  */
 class ScannerFactory
 {
-    public static function createScanner(array $options)
+    public static function createScanner(array $options): Scanner
     {
-        switch ($options['strategy']) {
-            case 'clamd_unix':
-                $scanStrategy = new ScanStrategyClamdUnix(
-                    $options['socket'] ?? ScanStrategyClamdUnix::DEFAULT_SOCKET
-                );
-                break;
-            case 'clamd_network':
-                $scanStrategy = new ScanStrategyClamdNetwork(
-                    $options['host'] ?? ScanStrategyClamdNetwork::DEFAULT_HOST,
-                    $options['port'] ?? ScanStrategyClamdNetwork::DEFAULT_PORT
-                );
-                break;
-            default:
-                throw new \Exception(sprintf('Unsupported scan strategy "%s" configured', $options['strategy']));
-        }
+        $socketTimeout = $options['socket_timeout'] ?? null;
+        $strategy = $options['strategy'] ?? null;
+
+        $scanStrategy = match ($strategy) {
+            'clamd_unix' => new ScanStrategyClamdUnix(
+                $options['socket'] ?? ScanStrategyClamdUnix::DEFAULT_SOCKET,
+                $socketTimeout,
+            ),
+            'clamd_network' => new ScanStrategyClamdNetwork(
+                $options['host'] ?? ScanStrategyClamdNetwork::DEFAULT_HOST,
+                $options['port'] ?? ScanStrategyClamdNetwork::DEFAULT_PORT,
+                $socketTimeout,
+            ),
+            default => throw new \InvalidArgumentException(
+                sprintf('Unsupported scan strategy "%s" configured', $strategy)
+            ),
+        };
 
         return new Scanner($scanStrategy);
     }

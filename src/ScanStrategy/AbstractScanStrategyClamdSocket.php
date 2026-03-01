@@ -7,18 +7,11 @@ use Sineflow\ClamAV\Exception\FileScanException;
 use Sineflow\ClamAV\Exception\SocketException;
 use Sineflow\ClamAV\Socket\Socket;
 
-abstract class AbstractScanStrategyClamdSocket
+abstract class AbstractScanStrategyClamdSocket implements ScanStrategyInterface
 {
-    /**
-     * @var Socket
-     */
-    protected $socket;
+    protected Socket $socket;
 
     /**
-     * @param string $filePath
-     *
-     * @return ScannedFile
-     *
      * @throws FileScanException
      * @throws SocketException
      */
@@ -31,20 +24,14 @@ abstract class AbstractScanStrategyClamdSocket
 
         $response = $this->socket->sendCommand('SCAN ' . $filePath);
 
-        return new ScannedFile($response);
+        return ScannedFile::fromRawResponse($filePath, $response);
     }
 
-    /**
-     * @return string
-     */
     public function version(): string
     {
         return trim($this->socket->sendCommand('VERSION'));
     }
 
-    /**
-     * @return bool
-     */
     public function ping(): bool
     {
         return trim($this->socket->sendCommand('PING')) === 'PONG';

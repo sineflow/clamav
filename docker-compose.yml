@@ -1,0 +1,36 @@
+services:
+  clamav:
+    image: clamav/clamav:stable
+    environment:
+      CLAMD_CONF_TCPSocket: 3310
+    volumes:
+      - clamav-db:/var/lib/clamav
+      - clamav-socket:/tmp
+      - .:/app
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+  phpunit:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      clamav:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - clamav-socket:/run/clamav
+    working_dir: /app
+    environment:
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
+      CLAMAV_SOCKET: /run/clamav/clamd.sock
+    command: ["sh", "-c", "composer install --no-interaction && vendor/bin/phpunit --no-coverage"]
+
+volumes:
+  clamav-db:
+  clamav-socket:

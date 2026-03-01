@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
-        backupGlobals="false"
-        backupStaticAttributes="false"
-        colors="true"
-        convertErrorsToExceptions="true"
-        convertNoticesToExceptions="true"
-        convertWarningsToExceptions="true"
-        processIsolation="false"
-        stopOnFailure="false"
-        >
-
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd" backupGlobals="false" colors="true" processIsolation="false" stopOnFailure="false">
   <testsuites>
+    <testsuite name="Unit">
+      <directory>./tests/Unit/</directory>
+    </testsuite>
     <testsuite name="Functional">
       <directory>./tests/Functional/</directory>
     </testsuite>
-    <testsuite name="All">
-      <directory>./tests/</directory>
-    </testsuite>
   </testsuites>
-
   <coverage>
+    <report>
+      <text outputFile="php://stdout" showOnlySummary="true"/>
+    </report>
+  </coverage>
+  <php>
+    <server name="SHELL_VERBOSITY" value="-1"/>
+  </php>
+  <source>
     <include>
       <directory>./</directory>
     </include>
@@ -30,13 +25,5 @@
       <directory>./vendor</directory>
       <directory>./var</directory>
     </exclude>
-    <report>
-      <text outputFile="php://stdout" showOnlySummary="true"/>
-    </report>
-  </coverage>
-
-  <php>
-    <server name="SHELL_VERBOSITY" value="-1"/>
-  </php>
-
+  </source>
 </phpunit>

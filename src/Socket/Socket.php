@@ -6,62 +6,38 @@ use Sineflow\ClamAV\Exception\SocketException;
 
 class Socket
 {
-    const UNIX = \AF_UNIX;
-    const NETWORK = \AF_INET;
+    public const UNIX = \AF_UNIX;
+    public const NETWORK = \AF_INET;
 
-    const MAX_READ_BYTES = 8192;
+    private const MAX_READ_BYTES = 8192;
 
-    /**
-     * @var int
-     */
-    private $socketType;
+    private ?\Socket $socket = null;
 
-    /**
-     * @var array
-     */
-    private $connectionArguments;
-
-    /**
-     * @var resource
-     */
-    private $socket;
-
-    /**
-     * @param int   $socketType
-     * @param array $connectionArguments
-     */
-    public function __construct(int $socketType, array $connectionArguments)
-    {
-        $this->socketType = $socketType;
-        $this->connectionArguments = $connectionArguments;
+    public function __construct(
+        private readonly int $socketType,
+        private readonly array $connectionArguments,
+        private readonly ?int $timeoutSeconds = null,
+    ) {
     }
 
-    /**
-     * @param string $dataIn
-     * @param int    $flagsSend
-     * @param int    $flagsReceive
-     *
-     * @return string
-     */
-    public function sendCommand($dataIn, $flagsSend = 0, $flagsReceive = MSG_WAITALL)
+    public function sendCommand(string $dataIn, int $flagsSend = 0, int $flagsReceive = MSG_WAITALL): string
     {
         $this->connect();
 
         if (false === socket_send($this->socket, $dataIn, strlen($dataIn), $flagsSend)) {
-            throw new SocketException('Writing to socket failed', socket_last_error($this->socket));
+            $this->closeAndThrow('Writing to socket failed');
         }
         $dataOut = '';
 
         do {
             $bytes = socket_recv($this->socket, $chunk, self::MAX_READ_BYTES, $flagsReceive);
             if (false === $bytes) {
-                $socketError = socket_last_error($this->socket);
-                socket_close($this->socket);
-                throw new SocketException('Reading from socket failed', $socketError);
+                $this->closeAndThrow('Reading from socket failed');
             }
             $dataOut .= $chunk;
         } while ($bytes);
         socket_close($this->socket);
+        $this->socket = null;
 
         return $dataOut;
     }
@@ -69,18 +45,41 @@ class Socket
     /**
      * @throws SocketException
      */
-    private function connect()
+    private function connect(): void
     {
-        if (!is_resource($this->socket) || get_resource_type($this->socket) !== 'Socket') {
-            $this->socket = @ socket_create($this->socketType, SOCK_STREAM, 0);
-            if ($this->socket === false) {
-                throw new SocketException('Creating socket failed', socket_last_error());
-            }
+        if ($this->socket instanceof \Socket) {
+            return;
+        }
 
-            $hasError = @ socket_connect($this->socket, ...$this->connectionArguments);
-            if ($hasError === false) {
-                throw new SocketException('Connecting to socket failed', socket_last_error());
+        $socket = @ socket_create($this->socketType, SOCK_STREAM, 0);
+        if ($socket === false) {
+            $this->closeAndThrow('Creating socket failed');
+        }
+        $this->socket = $socket;
+
+        $success = @ socket_connect($this->socket, ...$this->connectionArguments);
+        if ($success === false) {
+            $this->closeAndThrow('Connecting to socket failed');
+        }
+
+        if ($this->timeoutSeconds !== null) {
+            $timeout = ['sec' => $this->timeoutSeconds, 'usec' => 0];
+            if (false === socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, $timeout)) {
+                $this->closeAndThrow('Setting socket send timeout failed');
+            }
+            if (false === socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, $timeout)) {
+                $this->closeAndThrow('Setting socket receive timeout failed');
             }
         }
+    }
+
+    private function closeAndThrow(string $message): never
+    {
+        $errorCode = socket_last_error($this->socket);
+        if (null !== $this->socket) {
+            socket_close($this->socket);
+            $this->socket = null;
+        }
+        throw new SocketException($message, $errorCode);
     }
 }

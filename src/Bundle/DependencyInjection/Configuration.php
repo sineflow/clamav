@@ -18,9 +18,10 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('strategy')->defaultValue('clamd_unix')->cannotBeEmpty()->end()
-                ->scalarNode('socket')->defaultValue(null)->end()
-                ->scalarNode('host')->defaultValue(null)->end()
-                ->scalarNode('port')->defaultValue(null)->end()
+                ->scalarNode('socket')->defaultNull()->end()
+                ->scalarNode('host')->defaultNull()->end()
+                ->integerNode('port')->defaultNull()->end()
+                ->integerNode('socket_timeout')->defaultNull()->info('Socket read/write timeout in seconds. Null means no timeout.')->end()
             ->end()
         ;
 

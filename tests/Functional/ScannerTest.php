@@ -1,7 +1,8 @@
 <?php
 
-namespace Sineflow\ClamAV\ScanStrategy\Tests;
+namespace Sineflow\ClamAV\Tests\Functional;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sineflow\ClamAV\Exception\FileScanException;
 use Sineflow\ClamAV\Scanner;
@@ -10,19 +11,21 @@ use Sineflow\ClamAV\ScanStrategy\ScanStrategyClamdUnix;
 
 class ScannerTest extends TestCase
 {
-    private static $originalFilePermissionsOfInaccessibleFile;
-    private static $socket;
-    private static $host;
-    private static $port;
+    private static string $socket;
+    private static string $host;
+    private static int $port;
+    private static int $originalFilePermissionsOfInaccessibleFile;
+    private static bool $filePermissionsCanBeEnforced;
 
     public static function setUpBeforeClass(): void
     {
         self::$socket = getenv('CLAMAV_SOCKET') ?: ScanStrategyClamdUnix::DEFAULT_SOCKET;
         self::$host = getenv('CLAMAV_HOST') ?: ScanStrategyClamdNetwork::DEFAULT_HOST;
-        self::$port = getenv('CLAMAV_PORT') ?: ScanStrategyClamdNetwork::DEFAULT_PORT;
+        self::$port = (int) (getenv('CLAMAV_PORT') ?: ScanStrategyClamdNetwork::DEFAULT_PORT);
 
         self::$originalFilePermissionsOfInaccessibleFile = fileperms(__DIR__.'/../Files/inaccessible.txt');
         chmod(__DIR__.'/../Files/inaccessible.txt', 0000);
+        self::$filePermissionsCanBeEnforced = !is_readable(__DIR__.'/../Files/inaccessible.txt');
     }
 
     public static function tearDownAfterClass(): void
@@ -30,35 +33,52 @@ class ScannerTest extends TestCase
         chmod(__DIR__.'/../Files/inaccessible.txt', self::$originalFilePermissionsOfInaccessibleFile);
     }
 
-    public function testPingWithClamdUnix()
+    public function testPingWithClamdUnix(): void
     {
         $scanner = new Scanner(new ScanStrategyClamdUnix(self::$socket));
         $this->assertTrue($scanner->ping());
     }
 
-    public function testPingWithClamdNetwork()
+    public function testPingWithClamdNetwork(): void
     {
         $scanner = new Scanner(new ScanStrategyClamdNetwork(self::$host, self::$port));
         $this->assertTrue($scanner->ping());
     }
 
-    public function testVersionWithClamdUnix()
+    public function testVersionWithClamdUnix(): void
     {
         $scanner = new Scanner(new ScanStrategyClamdUnix(self::$socket));
         $this->assertIsString($scanner->version());
     }
 
-    public function testVersionWithClamdNetwork()
+    public function testVersionWithClamdNetwork(): void
     {
         $scanner = new Scanner(new ScanStrategyClamdNetwork(self::$host, self::$port));
         $this->assertIsString($scanner->version());
     }
 
+    public function testMultipleCommandsOnSameInstanceWithClamdUnix(): void
+    {
+        $scanner = new Scanner(new ScanStrategyClamdUnix(self::$socket));
 
-    /**
-     * @dataProvider validFilesToCheckProvider
-     */
-    public function testScanValidFilesWithClamdUnix(string $filePath, bool $expectedVirus, string $expectedVirusName)
+        $this->assertTrue($scanner->ping());
+        $this->assertIsString($scanner->version());
+        $this->assertTrue($scanner->scan(realpath(__DIR__.'/../Files/clean.txt'))->isClean());
+        $this->assertFalse($scanner->scan(realpath(__DIR__.'/../Files/eicar.txt'))->isClean());
+    }
+
+    public function testMultipleCommandsOnSameInstanceWithClamdNetwork(): void
+    {
+        $scanner = new Scanner(new ScanStrategyClamdNetwork(self::$host, self::$port));
+
+        $this->assertTrue($scanner->ping());
+        $this->assertIsString($scanner->version());
+        $this->assertTrue($scanner->scan(realpath(__DIR__.'/../Files/clean.txt'))->isClean());
+        $this->assertFalse($scanner->scan(realpath(__DIR__.'/../Files/eicar.txt'))->isClean());
+    }
+
+    #[DataProvider('validFilesToCheckProvider')]
+    public function testScanValidFilesWithClamdUnix(string $filePath, bool $expectedVirus, string $expectedVirusName): void
     {
         $scanner = new Scanner(new ScanStrategyClamdUnix(self::$socket));
 
@@ -68,11 +88,13 @@ class ScannerTest extends TestCase
         $this->assertSame($filePath, $scanResult->getFileName());
     }
 
-    /**
-     * @dataProvider invalidFilesToCheckProvider
-     */
-    public function testScanInvalidFilesWithClamdUnix(string $filePath, string $expectedErrorMessage)
+    #[DataProvider('invalidFilesToCheckProvider')]
+    public function testScanInvalidFilesWithClamdUnix(string $filePath, string $expectedErrorMessage): void
     {
+        if ($filePath === realpath(__DIR__.'/../Files/inaccessible.txt') && !self::$filePermissionsCanBeEnforced) {
+            $this->markTestSkipped('File permissions cannot be enforced on this filesystem (e.g., running as root in Docker).');
+        }
+
         $scanner = new Scanner(new ScanStrategyClamdUnix(self::$socket));
 
         $this->expectException(FileScanException::class);
@@ -80,10 +102,8 @@ class ScannerTest extends TestCase
         $scanner->scan($filePath);
     }
 
-    /**
-     * @dataProvider validFilesToCheckProvider
-     */
-    public function testScanValidFilesWithClamdNetwork(string $filePath, bool $expectedVirus, string $expectedVirusName)
+    #[DataProvider('validFilesToCheckProvider')]
+    public function testScanValidFilesWithClamdNetwork(string $filePath, bool $expectedVirus, string $expectedVirusName): void
     {
         $scanner = new Scanner(new ScanStrategyClamdNetwork(self::$host, self::$port));
 
@@ -93,11 +113,13 @@ class ScannerTest extends TestCase
         $this->assertSame($filePath, $scanResult->getFileName());
     }
 
-    /**
-     * @dataProvider invalidFilesToCheckProvider
-     */
-    public function testScanInvalidFilesWithClamdNetwork(string $filePath, string $expectedErrorMessage)
+    #[DataProvider('invalidFilesToCheckProvider')]
+    public function testScanInvalidFilesWithClamdNetwork(string $filePath, string $expectedErrorMessage): void
     {
+        if ($filePath === realpath(__DIR__.'/../Files/inaccessible.txt') && !self::$filePermissionsCanBeEnforced) {
+            $this->markTestSkipped('File permissions cannot be enforced on this filesystem (e.g., running as root in Docker).');
+        }
+
         $scanner = new Scanner(new ScanStrategyClamdNetwork(self::$host, self::$port));
 
         $this->expectException(FileScanException::class);
@@ -105,17 +127,17 @@ class ScannerTest extends TestCase
         $scanner->scan($filePath);
     }
 
-    public function validFilesToCheckProvider()
+    public static function validFilesToCheckProvider(): array
     {
         return [
             [realpath(__DIR__.'/../Files/clean.txt'), false, ''],
-            [realpath(__DIR__.'/../Files/eicar.txt'), true, 'Win.Test.EICAR_HDB-1'],
+            [realpath(__DIR__.'/../Files/eicar.txt'), true, 'Eicar-Test-Signature'],
             [realpath(__DIR__.'/../Files/eicar-dropper.pdf'), true, 'Pdf.Dropper.Agent-6299400-0'],
-            [realpath(__DIR__.'/../Files/infected-archive.zip'), true, 'Win.Test.EICAR_HDB-1'],
+            [realpath(__DIR__.'/../Files/infected-archive.zip'), true, 'Eicar-Test-Signature'],
         ];
     }
 
-    public function invalidFilesToCheckProvider()
+    public static function invalidFilesToCheckProvider(): array
     {
         return [
             [realpath(__DIR__.'/../Files/'), 'Error scanning "'.realpath(__DIR__.'/../Files/').'": Not a file.'],

@@ -1,6 +1,7 @@
 This library is a PHP client for working with a ClamAV daemon. It also provides optional Symfony integration.
 
 [![Workflow status](https://github.com/sineflow/clamav/actions/workflows/code_style_and_tests.yml/badge.svg)](https://github.com/sineflow/clamav/actions/workflows/code_style_and_tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/sineflow/clamav/badge.svg?branch=main)](https://coveralls.io/github/sineflow/clamav?branch=main)
 
 # Requirements:
 
@@ -61,4 +62,10 @@ public function myAction(Scanner $scanner)
         ...
     }
 }
+```
+
+## Running tests
+```
+docker compose run --rm phpunit
+docker compose down
 ```

@@ -1,6 +1,6 @@
 <?php
 
-namespace Sineflow\ClamAV\ScanStrategy\Tests;
+namespace Sineflow\ClamAV\Tests\Functional;
 
 use PHPUnit\Framework\TestCase;
 use Sineflow\ClamAV\Bundle\SineflowClamAVBundle;
@@ -17,25 +17,14 @@ class SineflowClamavTestingKernel extends Kernel
             new SineflowClamAVBundle(),
         ];
     }
-    public function registerContainerConfiguration(LoaderInterface $loader)
+    public function registerContainerConfiguration(LoaderInterface $loader): void
     {
-    }
-}
-
-class ReflectionHelper
-{
-    public static function getProperty($object, $property)
-    {
-        $reflectedClass = new \ReflectionClass($object);
-        $reflection = $reflectedClass->getProperty($property);
-        $reflection->setAccessible(true);
-        return $reflection->getValue($object);
     }
 }
 
 class BundleTest extends TestCase
 {
-    public function testServiceWiring()
+    public function testServiceWiring(): void
     {
         $kernel = new SineflowClamavTestingKernel('test', true);
         $kernel->boot();
@@ -44,7 +33,8 @@ class BundleTest extends TestCase
         $scanner = $container->get('sineflow.clamav.scanner');
         $this->assertInstanceOf(Scanner::class, $scanner);
 
-        $value = ReflectionHelper::getProperty($scanner, 'scanStrategy');
+        $ref = new \ReflectionProperty(Scanner::class, 'scanStrategy');
+        $value = $ref->getValue($scanner);
         $this->assertInstanceOf(ScanStrategyClamdUnix::class, $value);
     }
 }

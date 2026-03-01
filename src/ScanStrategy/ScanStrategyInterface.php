@@ -8,7 +8,7 @@ interface ScanStrategyInterface
 {
     public function scan(string $filePath): ScannedFile;
 
-    public function version();
+    public function version(): string;
 
-    public function ping();
+    public function ping(): bool;
 }

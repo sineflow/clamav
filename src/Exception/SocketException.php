@@ -4,19 +4,12 @@ namespace Sineflow\ClamAV\Exception;
 
 class SocketException extends \RuntimeException
 {
-    /**
-     * @var int
-     */
-    protected $errorCode;
+    private readonly ?int $errorCode;
 
-    /**
-     * @param string   $message
-     * @param int|null $socketErrorCode
-     */
-    public function __construct(string $message, int $socketErrorCode = null)
+    public function __construct(string $message, ?int $socketErrorCode = null)
     {
         $this->errorCode = $socketErrorCode;
-        if ($socketErrorCode) {
+        if ($socketErrorCode !== null) {
             $message = sprintf('%s: (%s) %s', $message, $socketErrorCode, socket_strerror($socketErrorCode));
         }
 
@@ -25,7 +18,6 @@ class SocketException extends \RuntimeException
 
     /**
      * Get socket error (returned from 'socket_last_error')
-     * @return int
      */
     public function getErrorCode(): ?int
     {

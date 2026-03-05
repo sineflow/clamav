@@ -36,6 +36,28 @@ class ScannerTest extends TestCase
         $this->assertTrue($scanner->ping());
     }
 
+    public function testScanStreamDelegatesToStrategy(): void
+    {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'abc');
+        rewind($stream);
+
+        $expected = ScannedFile::fromInstreamResponse('/path/to/file.txt', 'stream: OK');
+
+        $strategy = $this->createMock(ScanStrategyInterface::class);
+        $strategy->expects($this->once())
+            ->method('scanStream')
+            ->with($stream, '/path/to/file.txt')
+            ->willReturn($expected);
+
+        $scanner = new Scanner($strategy);
+        $result = $scanner->scanStream($stream, '/path/to/file.txt');
+
+        fclose($stream);
+
+        $this->assertSame($expected, $result);
+    }
+
     public function testVersionDelegatesToStrategy(): void
     {
         $strategy = $this->createMock(ScanStrategyInterface::class);

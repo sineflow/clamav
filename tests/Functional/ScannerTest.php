@@ -127,6 +127,38 @@ class ScannerTest extends TestCase
         $scanner->scan($filePath);
     }
 
+    #[DataProvider('validStreamFilesToCheckProvider')]
+    public function testScanStreamWithClamdUnix(string $filePath, bool $expectedVirus, string $expectedVirusName): void
+    {
+        $scanner = new Scanner(new ScanStrategyClamdUnix(self::$socket));
+        $stream = fopen($filePath, 'rb');
+
+        try {
+            $scanResult = $scanner->scanStream($stream, $filePath);
+            $this->assertSame($expectedVirus, !$scanResult->isClean());
+            $this->assertSame($expectedVirusName, $scanResult->getVirusName());
+            $this->assertSame($filePath, $scanResult->getFileName());
+        } finally {
+            fclose($stream);
+        }
+    }
+
+    #[DataProvider('validStreamFilesToCheckProvider')]
+    public function testScanStreamWithClamdNetwork(string $filePath, bool $expectedVirus, string $expectedVirusName): void
+    {
+        $scanner = new Scanner(new ScanStrategyClamdNetwork(self::$host, self::$port));
+        $stream = fopen($filePath, 'rb');
+
+        try {
+            $scanResult = $scanner->scanStream($stream, $filePath);
+            $this->assertSame($expectedVirus, !$scanResult->isClean());
+            $this->assertSame($expectedVirusName, $scanResult->getVirusName());
+            $this->assertSame($filePath, $scanResult->getFileName());
+        } finally {
+            fclose($stream);
+        }
+    }
+
     public static function validFilesToCheckProvider(): array
     {
         return [
@@ -143,6 +175,16 @@ class ScannerTest extends TestCase
             [realpath(__DIR__.'/../Files/'), 'Error scanning "'.realpath(__DIR__.'/../Files/').'": Not a file.'],
             ['file_does_not_exist', 'Error scanning "file_does_not_exist": Not a file.'],
             [realpath(__DIR__.'/../Files/inaccessible.txt'), 'Error scanning "'.realpath(__DIR__.'/../Files/inaccessible.txt').'": Access denied.'],
+        ];
+    }
+
+    public static function validStreamFilesToCheckProvider(): array
+    {
+        return [
+            [realpath(__DIR__.'/../Files/clean.txt'), false, ''],
+            [realpath(__DIR__.'/../Files/eicar.txt'), true, 'Eicar-Test-Signature'],
+            [realpath(__DIR__.'/../Files/eicar-dropper.pdf'), true, 'Pdf.Dropper.Agent-6299400-0'],
+            [realpath(__DIR__.'/../Files/infected-archive.zip'), true, 'Eicar-Test-Signature'],
         ];
     }
 }

@@ -20,13 +20,60 @@ class Socket
     ) {
     }
 
+    /**
+     * @throws SocketException
+     */
     public function sendCommand(string $dataIn, int $flagsSend = 0, int $flagsReceive = MSG_WAITALL): string
     {
         $this->connect();
 
-        if (false === socket_send($this->socket, $dataIn, strlen($dataIn), $flagsSend)) {
-            $this->closeAndThrow('Writing to socket failed');
+        $this->sendAll($dataIn, $flagsSend);
+
+        return $this->readAndClose($flagsReceive);
+    }
+
+    /**
+     * Stream data from an already-open resource to ClamAV via INSTREAM protocol.
+     * The caller owns the stream lifecycle (open/close).
+     *
+     * @param resource $stream Open readable stream
+     *
+     * @throws SocketException
+     */
+    public function sendInstreamFromStream($stream, int $flagsSend = 0, int $flagsReceive = MSG_WAITALL): string
+    {
+        $this->connect();
+
+        // Send zINSTREAM\0 command
+        $command = "zINSTREAM\0";
+        $this->sendAll($command, $flagsSend);
+
+        while (!feof($stream)) {
+            $chunk = fread($stream, self::MAX_READ_BYTES);
+            if ($chunk === false) {
+                $this->closeAndThrow('Reading from stream failed');
+            }
+            if ($chunk === '') {
+                break;
+            }
+            $chunkLen = strlen($chunk);
+            $header = pack('N', $chunkLen);
+            $data = $header . $chunk;
+            $this->sendAll($data, $flagsSend);
         }
+
+        // Send terminator (4 zero bytes)
+        $terminator = pack('N', 0);
+        $this->sendAll($terminator, $flagsSend);
+
+        return $this->readAndClose($flagsReceive);
+    }
+
+    /**
+     * @throws SocketException
+     */
+    private function readAndClose(int $flagsReceive): string
+    {
         $dataOut = '';
 
         do {
@@ -39,7 +86,7 @@ class Socket
         socket_close($this->socket);
         $this->socket = null;
 
-        return $dataOut;
+        return rtrim($dataOut, "\0");
     }
 
     /**
@@ -70,6 +117,25 @@ class Socket
             if (false === socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, $timeout)) {
                 $this->closeAndThrow('Setting socket receive timeout failed');
             }
+        }
+    }
+
+    /**
+     * Loop socket_send() until all bytes are written or an error occurs.
+     *
+     * @throws SocketException
+     */
+    private function sendAll(string $data, int $flags): void
+    {
+        $length = strlen($data);
+        $offset = 0;
+
+        while ($offset < $length) {
+            $sent = socket_send($this->socket, substr($data, $offset), $length - $offset, $flags);
+            if (false === $sent || $sent === 0) {
+                $this->closeAndThrow('Writing to socket failed');
+            }
+            $offset += $sent;
         }
     }
 

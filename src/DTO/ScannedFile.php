@@ -38,6 +38,26 @@ class ScannedFile
         );
     }
 
+    public static function fromInstreamResponse(string $filePath, string $rawResponse): self
+    {
+        $isParsed = preg_match('/^stream: (.*?)\s*(FOUND|OK|ERROR)\s*$/', $rawResponse, $matches);
+
+        if (!$isParsed) {
+            throw new FileScanException($filePath, sprintf('Failed to parse clamav response: %s', $rawResponse));
+        }
+
+        if ($matches[2] === 'ERROR') {
+            throw new FileScanException($filePath, trim($matches[1]));
+        }
+
+        return new self(
+            rawResponse: $rawResponse,
+            fileName: $filePath,
+            isClean: ($matches[2] === 'OK'),
+            virusName: trim($matches[1]),
+        );
+    }
+
     public function getRawResponse(): string
     {
         return $this->rawResponse;

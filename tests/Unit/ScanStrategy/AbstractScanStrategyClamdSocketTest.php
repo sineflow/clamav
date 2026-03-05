@@ -55,6 +55,44 @@ class AbstractScanStrategyClamdSocketTest extends TestCase
         $this->strategy->scan(__DIR__);
     }
 
+    public function testScanStreamSendsInstreamFromStream(): void
+    {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'test content');
+        rewind($stream);
+
+        $this->socket->expects($this->once())
+            ->method('sendInstreamFromStream')
+            ->with($stream)
+            ->willReturn('stream: OK');
+
+        $result = $this->strategy->scanStream($stream, 'test.txt');
+
+        fclose($stream);
+
+        $this->assertTrue($result->isClean());
+        $this->assertSame('test.txt', $result->getFileName());
+    }
+
+    public function testScanStreamDetectsInfectedStream(): void
+    {
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, 'test content');
+        rewind($stream);
+
+        $this->socket->expects($this->once())
+            ->method('sendInstreamFromStream')
+            ->with($stream)
+            ->willReturn('stream: Eicar-Test-Signature FOUND');
+
+        $result = $this->strategy->scanStream($stream, 'test.txt');
+
+        fclose($stream);
+
+        $this->assertFalse($result->isClean());
+        $this->assertSame('Eicar-Test-Signature', $result->getVirusName());
+    }
+
     public function testPingReturnsTrue(): void
     {
         $this->socket->expects($this->once())

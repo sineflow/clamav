@@ -16,6 +16,15 @@ class Scanner
         return $this->scanStrategy->scan($filePath);
     }
 
+    /**
+     * @param resource $stream   Open readable stream
+     * @param string   $fileName Identifier for logging/error messages
+     */
+    public function scanStream($stream, string $fileName): ScannedFile
+    {
+        return $this->scanStrategy->scanStream($stream, $fileName);
+    }
+
     public function ping(): bool
     {
         return $this->scanStrategy->ping();

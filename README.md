@@ -8,12 +8,12 @@ This library is a PHP client for working with a ClamAV daemon. It also provides 
 You need to have ClamAV installed and configured to accept socket and/or network connections: https://docs.clamav.net/manual/Installing.html
 
 # Installation
-```
+```sh
 $ composer require sineflow/clamav
 ```
 
 # Usage as a standalone library
-```
+```php
 $scanner = new Scanner(new ScanStrategyClamdUnix($socket));
 $scanner = new Scanner(new ScanStrategyClamdNetwork($host, $port));
 ```
@@ -30,13 +30,13 @@ return [
 ```
 
 ## Configuration:
-```
+```yaml
 sineflow_clam_av:
     strategy: clamd_unix
     socket: "/var/run/clamav/clamd.ctl"
 ```
 or
-```
+```yaml
 sineflow_clam_av:
     strategy: clamd_network
     host: 127.0.0.1
@@ -44,7 +44,7 @@ sineflow_clam_av:
 ```
 
 ## Scanning files
-```
+```php
 use Sineflow\ClamAV\Scanner;
 use Sineflow\ClamAV\Exception\FileScanException;
 use Sineflow\ClamAV\Exception\SocketException;
@@ -60,6 +60,35 @@ public function myAction(Scanner $scanner)
         ...
     } catch (FileScanException $e) {
         ...
+    }
+}
+```
+
+## Scanning streams
+
+When the file is not on the local filesystem or not accessible to the ClamAV daemon (e.g. files stored via Flysystem in S3, SFTP, etc.), you can use `scanStream()` to send the file contents directly to ClamAV via its INSTREAM protocol.
+
+```php
+use Sineflow\ClamAV\Scanner;
+use Sineflow\ClamAV\Exception\FileScanException;
+use Sineflow\ClamAV\Exception\SocketException;
+
+// In a real application, the stream would typically come from
+// Flysystem's readStream(), an HTTP response, or similar source.
+public function myAction(Scanner $scanner)
+{
+    $stream = fopen('/path/to/file', 'rb');
+    try {
+        $scannedFile = $scanner->scanStream($stream, 'my-upload.pdf');
+        if (!$scannedFile->isClean()) {
+            echo $scannedFile->getVirusName();
+        }
+    } catch (SocketException $e) {
+        ...
+    } catch (FileScanException $e) {
+        ...
+    } finally {
+        fclose($stream);
     }
 }
 ```

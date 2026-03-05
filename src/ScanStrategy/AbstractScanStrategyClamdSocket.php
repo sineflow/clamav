@@ -27,6 +27,20 @@ abstract class AbstractScanStrategyClamdSocket implements ScanStrategyInterface
         return ScannedFile::fromRawResponse($filePath, $response);
     }
 
+    /**
+     * @param resource $stream   Open readable stream
+     * @param string   $fileName Identifier for logging/error messages
+     *
+     * @throws FileScanException
+     * @throws SocketException
+     */
+    public function scanStream($stream, string $fileName): ScannedFile
+    {
+        $response = $this->socket->sendInstreamFromStream($stream);
+
+        return ScannedFile::fromInstreamResponse($fileName, $response);
+    }
+
     public function version(): string
     {
         return trim($this->socket->sendCommand('VERSION'));
